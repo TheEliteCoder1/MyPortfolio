@@ -1,13 +1,9 @@
-import { Router } from "express";
-import Contact from "../models/contact-model.js";
-import createCrudController from "../controllers/crud-factory.js";
-import { requireAuth } from "../middleware/auth-middleware.js";
+import express from 'express';
+import { createContact, getContacts } from '../controllers/contact-controller.js';
+import { protect, admin } from '../middleware/auth-middleware.js';
 
-const contacts = createCrudController(Contact, "Contact");
-const router = Router();
+const router = express.Router();
+router.post('/', createContact); // Public route for contact form
+router.get('/', protect, admin, getContacts); // Admin only
 
-// Visitors can submit the contact form without logging in; everything else is protected
-router.post("/", contacts.create);
-router.get("/", requireAuth, contacts.getAll);
-router.route("/:id").all(requireAuth).get(contacts.getOne).put(contacts.update).delete(contacts.remove);
 export default router;

@@ -1,35 +1,36 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
-const emptyForm = { firstName: "", lastName: "", phone: "", email: "", message: "" };
+import { useState } from 'react';
+import api from '../services/api';
 
 export default function Contact() {
-  const [form, setForm] = useState(emptyForm);
-  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [status, setStatus] = useState('idle'); // idle, loading, success, error
 
-  // Keep state in sync with each input (matched by the input's name)
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  // capture values, then return to Home (nothing is sent or stored)
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Captured form values:", form);
-    navigate("/");
+    setStatus('loading');
+    try {
+      await api.post('/contacts', formData);
+      setStatus('success');
+      setFormData({ name: '', email: '', message: '' });
+    } catch (err) {
+      setStatus('error');
+    }
   };
 
-  // Form layout
   return (
-    <section>
-      <h1>Contact</h1>
-      <p>Email: daelitecoder1@gmail.com | Phone: (647)-655-0753 | HQ: Toronto, ON</p>
-      <form className="form" onSubmit={handleSubmit}>
-        <label>First name<input name="firstName" value={form.firstName} onChange={handleChange} required /></label>
-        <label>Last name<input name="lastName" value={form.lastName} onChange={handleChange} required /></label>
-        <label>Contact number<input name="phone" type="tel" value={form.phone} onChange={handleChange} required /></label>
-        <label>Email address<input name="email" type="email" value={form.email} onChange={handleChange} required /></label>
-        <label>Message<textarea name="message" rows="5" value={form.message} onChange={handleChange} required /></label>
-        <button className="button" type="submit">Send message</button>
+    <div style={{ maxWidth: '500px', margin: '2rem auto' }}>
+      <h2>Contact Us</h2>
+      {status === 'success' && <p style={{ color: 'green' }}>Message saved to database!</p>}
+      {status === 'error' && <p style={{ color: 'red' }}>Something went wrong.</p>}
+      
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <input type="text" placeholder="Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
+        <input type="email" placeholder="Email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required />
+        <textarea placeholder="Message" value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} required />
+        <button type="submit" disabled={status === 'loading'}>
+          {status === 'loading' ? 'Sending...' : 'Send Message'}
+        </button>
       </form>
-    </section>
+    </div>
   );
 }
