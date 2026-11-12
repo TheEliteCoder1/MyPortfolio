@@ -6,10 +6,10 @@ import Projects from "./pages/Projects.jsx";
 import Education from "./pages/Education.jsx";
 import Services from "./pages/Services.jsx";
 import Contact from "./pages/Contact.jsx";
-// import Login from "./pages/Login.jsx";
-// import Register from "./pages/Register.jsx";
-// import AdminDashboard from "./pages/AdminDashboard.jsx"; 
-// import { AdminRoute } from "./components/ProtectedRoute.jsx";
+import Login from "./pages/Login.jsx";
+import Register from "./pages/Register.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx"; 
+import { AdminRoute } from "./components/ProtectedRoute.jsx";
 
 // One route per required page
 export default function App() {
