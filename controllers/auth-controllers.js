@@ -1,43 +1,49 @@
-// Sign-up, sign-in, sign-out and "who am I" using JWT access tokens
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import User from "../models/user-model.js";
+import User from '../models/user-model.js';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
-const createToken = (userId) =>
-  jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || "1h" });
-
-// POST /api/auth/signup
-export const signUp = async (req, res) => {
-  const { name, email, password } = req.body;
-  if (!name || !email || !password) return res.status(400).json({ message: "Name, email and password are required" });
-  if (password.length < 8) return res.status(400).json({ message: "Password must be at least 8 characters" });
-
-  if (await User.findOne({ email: email.toLowerCase() })) {
-    return res.status(409).json({ message: "Email is already registered" });
-  }
-  const user = await User.create({ name, email, passwordHash: await bcrypt.hash(password, 10) });
-  res.status(201).json({ token: createToken(user._id), user });
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 };
 
-// POST /api/auth/signin
-export const signIn = async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ message: "Email and password are required" });
+export const registerUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const userExists = await User.findOne({ email });
+    if (userExists) return res.status(400).json({ message: 'User already exists' });
 
-  const user = await User.findOne({ email: email.toLowerCase() }).select("+passwordHash");
-  // Same message for both failures so attackers can't tell which part was wrong
-  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
-    return res.status(401).json({ message: "Invalid email or password" });
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    const user = await User.create({ name, email, passwordHash });
+    res.status(201).json({
+      token: generateToken(user._id),
+      user: { _id: user._id, name: user.name, email: user.email, role: user.role }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-  res.json({ token: createToken(user._id), user });
 };
 
-// POST /api/auth/signout
-// JWTs are stateless: sign-out = the client deletes its stored token. The token simply expires on its own.
-export const signOut = (req, res) => res.json({ message: "Signed out. Remove the token on the client." });
+export const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    // MUST use .select('+passwordHash') because your schema has select: false
+    const user = await User.findOne({ email }).select('+passwordHash');
+    
+    if (user && (await bcrypt.compare(password, user.passwordHash))) {
+      res.json({
+        token: generateToken(user._id),
+        user: { _id: user._id, name: user.name, email: user.email, role: user.role }
+      });
+    } else {
+      res.status(401).json({ message: 'Invalid email or password' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
-// GET /api/auth/me (protected: demonstrates authorized vs unauthorized)
-export const getCurrentUser = async (req, res) => {
-  const user = await User.findById(req.user.id);
-  user ? res.json(user) : res.status(404).json({ message: "User not found" });
+export const getMe = async (req, res) => {
+  res.status(200).json(req.user);
 };
