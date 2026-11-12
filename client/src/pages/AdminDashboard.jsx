@@ -3,70 +3,120 @@ import api from '../services/api';
 
 export default function AdminDashboard() {
   const [projects, setProjects] = useState([]);
-  const [formData, setFormData] = useState({ title: '', description: '' });
+  const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({ 
+    title: '', 
+    description: '', 
+    link: '', 
+    completionDate: '' 
+  });
 
-  // Read
-  const fetchProjects = async () => {
+  const fetchData = async () => {
     try {
-      const { data } = await api.get('/projects');
-      setProjects(data);
+      setLoading(true);
+      const [projectsRes, contactsRes] = await Promise.all([
+        api.get('/projects'),
+        api.get('/contacts')
+      ]);
+      setProjects(projectsRes.data);
+      setContacts(contactsRes.data);
     } catch (err) {
-      console.error(err);
+      setError('Failed to fetch data. Make sure backend is running.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchProjects(); }, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  // Create
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/projects', formData);
-      setFormData({ title: '', description: '' });
-      fetchProjects(); // Refresh list
+      const { data } = await api.post('/projects', formData);
+      setProjects([data, ...projects]);
+      setFormData({ title: '', description: '', link: '', completionDate: '' }); 
     } catch (err) {
-      alert('Error creating project');
+
+      console.error("Backend Error Details:", err.response?.data);
+      alert(err.response?.data?.message || 'Error creating project');
     }
   };
 
-  // Delete
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure?")) return;
+    if (!window.confirm('Are you sure you want to delete this project?')) return;
     try {
       await api.delete(`/projects/${id}`);
-      fetchProjects(); // Refresh list
+      setProjects(projects.filter((p) => p._id !== id));
     } catch (err) {
       alert('Error deleting project');
     }
   };
 
-  if (loading) return <p>Loading Admin Data...</p>;
+  if (loading) return <h2>Loading Admin Dashboard...</h2>;
+  if (error) return <h2 style={{ color: 'red' }}>{error}</h2>;
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div style={{ padding: '2rem', maxWidth: '900px', margin: '0 auto' }}>
       <h1>Admin Dashboard</h1>
-      
-      <div style={{ marginBottom: '2rem', padding: '1rem', border: '1px solid #ccc' }}>
-        <h3>Add New Project</h3>
-        <form onSubmit={handleCreate} style={{ display: 'flex', gap: '1rem' }}>
-          <input type="text" placeholder="Project Title" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} required />
-          <input type="text" placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} required />
-          <button type="submit">Create</button>
-        </form>
-      </div>
 
-      <h3>Manage Projects</h3>
-      <ul>
-        {projects.map(p => (
-          <li key={p._id} style={{ marginBottom: '10px' }}>
-            <strong>{p.title}</strong> - {p.description}
-            <button onClick={() => handleDelete(p._id)} style={{ marginLeft: '10px', color: 'red' }}>Delete</button>
-          </li>
-        ))}
-      </ul>
+      <section style={{ marginBottom: '3rem', padding: '1.5rem', border: '1px solid #ccc', borderRadius: '8px' }}>
+        <h2>Manage Projects</h2>
+        
+        <form onSubmit={handleCreate} style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+          <input 
+            type="text" 
+            placeholder="Project Title" 
+            value={formData.title} 
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
+            required 
+            style={{ flex: '1', padding: '0.5rem' }}
+          />
+          <input 
+            type="text" 
+            placeholder="Description" 
+            value={formData.description} 
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
+            required 
+            style={{ flex: '2', padding: '0.5rem' }}
+          />
+          {}
+          <input 
+            type="date" 
+            value={formData.completionDate} 
+            onChange={(e) => setFormData({ ...formData, completionDate: e.target.value })} 
+            required 
+            style={{ padding: '0.5rem' }}
+          />
+          <button type="submit" style={{ padding: '0.5rem 1rem', cursor: 'pointer', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px' }}>
+            Create
+          </button>
+        </form>
+
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {projects.map((project) => (
+            <li key={project._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: '#f9f9f9', marginBottom: '0.5rem', borderRadius: '4px' }}>
+              <div>
+                <strong>{project.title}</strong>
+                <p style={{ margin: '0.2rem 0', fontSize: '0.9rem', color: '#555' }}>{project.description}</p>
+                {}
+                <span style={{ fontSize: '0.8rem', color: '#888' }}>
+                  Completed: {project.completionDate || 'N/A'}
+                </span>
+              </div>
+              <button 
+                onClick={() => handleDelete(project._id)}
+                style={{ padding: '0.4rem 0.8rem', cursor: 'pointer', background: '#f44336', color: 'white', border: 'none', borderRadius: '4px' }}
+              >
+                Delete
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }
