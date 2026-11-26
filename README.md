@@ -1,3 +1,3 @@
-# MyPortfolio (Full-Stack Portfolio Integration - Assignment 3 Update)
+# MyPortfolio (Final Release - Assignment 4 Update)
 
-My last react-portfolio project frontend extended with a express/mongodb backend!
+Testing, Performance Optimization, Cloud Deployment (admin fails but rest of site is deployed - Vercel, MongoDB, Render), Ci/CD - simple change of hero/title text in main home page.
