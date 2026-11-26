@@ -1,7 +1,8 @@
 // seedAdmin.js
 import dotenv from 'dotenv';
-import connectDB from './config/db.js';   // Make sure this path is correct
-import User from './models/user-model.js'; // My exact model path
+import bcrypt from 'bcryptjs'; // or 'bcrypt' depending on what you use in your controllers
+import connectDB from './config/db.js';
+import User from './models/user-model.js';
 
 dotenv.config();
 
@@ -10,26 +11,34 @@ const seedAdmin = async () => {
     await connectDB();
 
     const adminEmail = process.env.ADMIN_EMAIL;
-    const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
+    const adminPlainPassword = process.env.ADMIN_PASSWORD; // Use plain text now
 
-    if (!adminEmail || !adminPasswordHash) {
-      console.error("Admin credentials missing from .env");
+    if (!adminEmail || !adminPlainPassword) {
+      console.error("Admin credentials missing from .env (ADMIN_EMAIL or ADMIN_PASSWORD)");
       process.exit(1);
     }
 
-    // Check if admin already exists
+    // 1. Hash the plain text password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(adminPlainPassword, salt);
+
+    // 2. Check if admin exists
     const existingAdmin = await User.findOne({ email: adminEmail });
+    
     if (existingAdmin) {
-      console.log('Admin account already exists in the database.');
+      // 3. OVERWRITE the broken password if the user exists
+      existingAdmin.passwordHash = hashedPassword;
+      await existingAdmin.save();
+      console.log('Admin password updated successfully in the database!');
       process.exit(0);
     }
 
-    // Create the admin
+    // 4. Create the admin if they don't exist
     await User.create({
       name: 'Administrator',
       email: adminEmail,
-      passwordHash: adminPasswordHash, // <-- Using my schema's exact field name
-      role: 'admin'                    // <-- Setting the role we just added
+      passwordHash: hashedPassword,
+      role: 'admin'
     });
 
     console.log('Admin account seeded successfully!');
