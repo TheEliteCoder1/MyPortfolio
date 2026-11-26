@@ -9,7 +9,20 @@ import qualificationRoutes from "./routes/qualifications-routes.js";
 import { notFound, errorHandler } from "./middleware/error-middleware.js";
 
 const app = express();
-app.use(cors({ origin: ["http://localhost:5173", "http://localhost:3000"] }));
+
+// 1. ACTIVATE CORS (Must be placed before your routes)
+const allowedOrigins = [
+  process.env.CLIENT_URL, 
+  "http://localhost:5173", // Vite local dev
+  "http://localhost:3000"  // Cypress / local serve
+].filter(Boolean); // Removes undefined if CLIENT_URL isn't set
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+
+// 2. Body parser
 app.use(express.json());
 
 // Welcome route (screenshot this for the assignment)
