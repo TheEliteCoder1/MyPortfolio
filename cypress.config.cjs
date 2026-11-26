@@ -8,7 +8,7 @@ module.exports = defineConfig({
     expose: {
       API_URL: 'http://localhost:5000', 
       ADMIN_EMAIL: 'daelitecoder1@gmail.com', 
-      ADMIN_PASSWORD: 'AdminPassword123!',   
+      ADMIN_PASSWORD: 'AdminPassword123',   
     },
   },
 });
