@@ -1,6 +1,6 @@
 // seedAdmin.js
 import dotenv from 'dotenv';
-import bcrypt from 'bcryptjs'; // or 'bcrypt' depending on what you use in your controllers
+import bcrypt from 'bcryptjs'; // or 'bcrypt' depending on what I use in my controllers
 import connectDB from './config/db.js';
 import User from './models/user-model.js';
 

@@ -10,7 +10,7 @@ import { notFound, errorHandler } from "./middleware/error-middleware.js";
 
 const app = express();
 
-// 1. ACTIVATE CORS (Must be placed before your routes)
+// 1. ACTIVATE CORS (Must be placed before my routes)
 const allowedOrigins = [
   process.env.CLIENT_URL, 
   "http://localhost:5173", // Vite local dev
