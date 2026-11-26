@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user-model.js';
 
-// 1. Export as requireAuth (matches your user-routes.js)
+// 1. Export as requireAuth (matches my user-routes.js)
 export const requireAuth = async (req, res, next) => {
   let token;
 
@@ -32,6 +32,6 @@ export const requireAdmin = (req, res, next) => {
   }
 };
 
-// 3. Export as protect and admin (in case you copied my earlier code)
+// 3. Export as protect and admin
 export const protect = requireAuth;
 export const admin = requireAdmin;

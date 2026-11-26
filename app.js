@@ -9,7 +9,7 @@ import qualificationRoutes from "./routes/qualifications-routes.js";
 import { notFound, errorHandler } from "./middleware/error-middleware.js";
 
 const app = express();
-app.use(cors({ origin: "http://localhost:5173" })); // allow the React client
+app.use(cors({ origin: ["http://localhost:5173", "http://localhost:3000"] }));
 app.use(express.json());
 
 // Welcome route (screenshot this for the assignment)

@@ -28,7 +28,7 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    // MUST use .select('+passwordHash') because your schema has select: false
+    // MUST use .select('+passwordHash') because my schema has select: false
     const user = await User.findOne({ email }).select('+passwordHash');
     
     if (user && (await bcrypt.compare(password, user.passwordHash))) {

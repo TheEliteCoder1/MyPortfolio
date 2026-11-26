@@ -1,7 +1,7 @@
 // seedAdmin.js
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';   // Make sure this path is correct
-import User from './models/user-model.js'; // Your exact model path
+import User from './models/user-model.js'; // My exact model path
 
 dotenv.config();
 
@@ -28,7 +28,7 @@ const seedAdmin = async () => {
     await User.create({
       name: 'Administrator',
       email: adminEmail,
-      passwordHash: adminPasswordHash, // <-- Using your schema's exact field name
+      passwordHash: adminPasswordHash, // <-- Using my schema's exact field name
       role: 'admin'                    // <-- Setting the role we just added
     });
 
